@@ -2,8 +2,11 @@ from fastapi import FastAPI, Request
 from pydantic import BaseModel
 import pymysql
 
-app = FastAPI()
 from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+# CORS (libera acesso do frontend)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -12,11 +15,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Modelo de dados
 class Dados(BaseModel):
     tipo: str
     valor: float
 
 
+# 🔥 Conexão com MySQL (Railway)
 def get_connection():
     return pymysql.connect(
         host="monorail.proxy.rlwy.net",
@@ -28,64 +33,67 @@ def get_connection():
     )
 
 
+# 💰 Regra de cashback
 def calcular_cashback(valor, tipo):
-
-    valor_final = valor
-
-    cashback = valor_final * 0.05
+    cashback = valor * 0.05
 
     if tipo.lower() == "vip":
         cashback *= 1.10
- 
-    if valor_final > 500:
+
+    if valor > 500:
         cashback *= 2
 
     return round(cashback, 2)
 
 
+# 📌 Endpoint para calcular cashback
 @app.post("/cashback")
 async def cashback(dados: Dados, request: Request):
-
     tipo = dados.tipo
     valor = dados.valor
-
     ip = request.client.host
 
     cashback = calcular_cashback(valor, tipo)
 
+    con = get_connection()
     cursor = con.cursor()
 
-    sql = """
-    INSERT INTO consultas (ip, tipo, valor, cashback)
-    VALUES (%s,%s,%s,%s)
-    """
+    try:
+        sql = """
+        INSERT INTO consultas (ip, tipo, valor, cashback)
+        VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(sql, (ip, tipo, valor, cashback))
+        con.commit()
+    finally:
+        cursor.close()
+        con.close()
 
-    cursor.execute(sql, (ip, tipo, valor, cashback))
-    con.commit()
-
-    return {
-        "cashback": cashback
-    }
+    return {"cashback": cashback}
 
 
+# 📊 Endpoint de histórico
 @app.get("/historico")
 async def historico(request: Request):
-
     ip = request.client.host
 
+    con = get_connection()
     cursor = con.cursor()
 
-    sql = "SELECT tipo, valor, cashback FROM consultas WHERE ip=%s"
+    try:
+        sql = "SELECT tipo, valor, cashback FROM consultas WHERE ip=%s"
+        cursor.execute(sql, (ip,))
+        dados = cursor.fetchall()
+    finally:
+        cursor.close()
+        con.close()
 
-    cursor.execute(sql, (ip,))
-
-    dados = cursor.fetchall()
-
+    # 🔥 retorna em JSON organizado
     return [
-    {
-        "tipo": d[0],
-        "valor": float(d[1]),
-        "cashback": float(d[2])
-    }
-    for d in dados
-]
+        {
+            "tipo": d[0],
+            "valor": float(d[1]),
+            "cashback": float(d[2])
+        }
+        for d in dados
+    ]
