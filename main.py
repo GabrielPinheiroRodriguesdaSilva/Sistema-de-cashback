@@ -19,11 +19,11 @@ class Dados(BaseModel):
 
 def get_connection():
     return pymysql.connect(
-        host="mysql.railway.internal",
+        host="monorail.proxy.rlwy.net",
         user="root",
         password="vJLZAigDUmWOeGZYjfdYuCTPqvHqluSf",
         database="railway",
-        port=3306
+        port=39885,
         ssl={"ssl": {}}
     )
 
