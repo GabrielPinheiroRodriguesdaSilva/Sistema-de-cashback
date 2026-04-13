@@ -5,7 +5,7 @@ Aplicação full stack que calcula cashback e mantém histórico por IP.
 ## 🚀 Tecnologias
 - Frontend: HTML, CSS, JavaScript
 - Backend: FastAPI
-- Banco: MySQL
+- Banco: MySQL Railway
 
 ## 📌 Funcionalidades
 - Cálculo de cashback por tipo de cliente

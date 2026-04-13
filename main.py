@@ -17,13 +17,15 @@ class Dados(BaseModel):
     valor: float
 
 
-# Conexão MySQL
-con = pymysql.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="cashback"
-)
+def get_connection():
+    return pymysql.connect(
+        host="mysql.railway.internal",
+        user="root",
+        password="vJLZAigDUmWOeGZYjfdYuCTPqvHqluSf",
+        database="railway",
+        port=3306
+        ssl={"ssl": {}}
+    )
 
 
 def calcular_cashback(valor, tipo):
