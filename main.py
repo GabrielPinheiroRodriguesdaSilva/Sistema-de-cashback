@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# CORS (libera acesso do frontend)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,13 +14,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Modelo de dados
+
 class Dados(BaseModel):
     tipo: str
     valor: float
 
 
-# 🔥 Conexão com MySQL (Railway)
 def get_connection():
     return pymysql.connect(
         host="monorail.proxy.rlwy.net",
@@ -33,7 +31,6 @@ def get_connection():
     )
 
 
-# 💰 Regra de cashback
 def calcular_cashback(valor, tipo):
     cashback = valor * 0.05
 
@@ -46,7 +43,7 @@ def calcular_cashback(valor, tipo):
     return round(cashback, 2)
 
 
-# 📌 Endpoint para calcular cashback
+
 @app.post("/cashback")
 async def cashback(dados: Dados, request: Request):
     tipo = dados.tipo
@@ -72,7 +69,7 @@ async def cashback(dados: Dados, request: Request):
     return {"cashback": cashback}
 
 
-# 📊 Endpoint de histórico
+
 @app.get("/historico")
 async def historico(request: Request):
     ip = request.client.host
@@ -88,7 +85,6 @@ async def historico(request: Request):
         cursor.close()
         con.close()
 
-    # 🔥 retorna em JSON organizado
     return [
         {
             "tipo": d[0],
